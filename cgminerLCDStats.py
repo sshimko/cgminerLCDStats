@@ -66,28 +66,57 @@ def getDeviceWellStatus(notification):
 #
 def getMinerPoolStatusURL(rpcClient):
 
-    poolURL = ""
-    firstPool = []
-    minprio = 9999
+    poolURL = None
+    firstPool = None
+    firstInfo = None
+    lastSeen = False
+
+    if not hasattr(getMinerPoolStatusURL, "lastPool"):
+        getMinerPoolStatusURL.lastPool = None 
+        getMinerPoolStatusURL.additionalInfo = None
+
+    if not getMinerPoolStatusURL.additionalInfo == None:
+       	i = getMinerPoolStatusURL.additionalInfo
+        getMinerPoolStatusURL.additionalInfo = None
+        return i
+
+    prevLastPool = getMinerPoolStatusURL.lastPool
     
     result = rpcClient.command('pools')   
     
     if result:
         for items in result: # iterate over entire result to find POOLS collection
             if items == "POOLS":
-                for i in result[items]: # found POOLS collection - remember best Alive
+                for i in result[items]: # found pools, try to find next active pool
                     #print json.dumps(i, sort_keys=True, indent=4, separators=(',', ': ')) 
                     if i['Status'] == 'Alive':
-                        prio = int(i['Priority'])
-                        if prio < minprio:
-                            minprio = prio
-                            firstPool = i
+                        # Logic: find the first active pool, remember it. Traverse through looking for the last 
+                        # pool we displayed. Display the pool *after* that pool if one exists.  If not, 
+                        # wrap-around and show the first active pool.
+                        poolURL = i['URL']
+                        getMinerPoolStatusURL.additionalInfo = "Q: " + str(i['Quota']) + "\tDA: " + str(i['Difficulty Accepted'])
+                        
+                        if firstPool == None:
+	                    firstPool = poolURL 
+                            firstInfo = getMinerPoolStatusURL.additionalInfo 
+                            if getMinerPoolStatusURL.lastPool == None:
+                                break
 
-        if minprio < 9999:
-            if firstPool['Stratum Active'] == True:
-                poolURL = firstPool['Stratum URL']
-            else:
-                poolURL = firstPool['URL']
+                        if poolURL == getMinerPoolStatusURL.lastPool:
+                            lastSeen = True
+                            continue
+
+                        if lastSeen:
+                            getMinerPoolStatusURL.lastPool = poolURL
+                            break
+
+                # wrap-around if the pool we found last time is the same as this time (we're at the end of the list)
+                if prevLastPool == getMinerPoolStatusURL.lastPool:
+                    getMinerPoolStatusURL.lastPool = firstPool 
+                    getMinerPoolStatusURL.additionalInfo = firstInfo 
+                    poolURL = firstPool
+
+                break
 
     return poolURL
      
@@ -303,25 +332,25 @@ def showDefaultScreen(firstTime, summary, mtgoxLastPrice, mtgoxDirectionCode, to
     else:    
         theTime = time.strftime("%H:%M:%S")  # 24 hour display
 
-    # strip common prefixes and suffixes off of the pool URL (to save display space) 
-    # TODO add code to remove all ":dddd" instead of adding port numbers to ignore
-    commonStringPattern = ['http://', 'stratum+tcp://', 'stratum.', 'www.', '.com', 'mining.', ':3333', ':3334', ':8330']  
+    # strip common prefixes and TLDs off of the pool URL (to save display space) 
+    # TODO: please submit additional TLDs and prefixes via github pull requests
+    commonStringPattern = ['http://', 'stratum+tcp://', '.com', '.pw', '.info', '.net', '.org', '.tips', '.ru', '.sk', '.us']
     shortPoolURL = str(poolURL)
     for i in commonStringPattern:
-        shortPoolURL = shortPoolURL.replace(i, '', 1).rstrip()   
+        shortPoolURL = shortPoolURL.replace(i, '', 1).rstrip()
       
     # build the display strings
-    line1String = shortPoolURL + "\t" + theTime
-    line2String = "Uptime:  " + upTime
-    line3String = "Avg:" + avgMhs + "h/s" + "  B:" + foundBlocks
+    line1String = shortPoolURL
+    line2String = theTime + " Up:" + upTime
+    line3String = "Avg:" + avgMhs + "h/s" + " B:" + foundBlocks
     if int(foundBlocks) > 0:
         line3Colour = TextColours.RED
     else:
         line3Colour = TextColours.GREEN
 
     #line3String = "Avg:" + avgMhs + "\tB:" + foundBlocks
-    line4String = difficultyAccepted + "  " + bestShare
-    line5String = reject + "  " + hardware
+    line4String = difficultyAccepted + " " + bestShare
+    line5String = reject + " " + hardware
     
     if mtgoxToggleState: # if we have MtGox data, get ready to display it
         line6String = "MtGox: " + mtgoxLastPrice 
@@ -341,7 +370,7 @@ def showDefaultScreen(firstTime, summary, mtgoxLastPrice, mtgoxDirectionCode, to
         display.clear_lines(TextLines.ALL, BackgroundColours.BLACK)
 
     # write all lines
-    display.display_text_on_line(1, line1String, True, (TextAlignment.LEFT, TextAlignment.RIGHT), TextColours.YELLOW)
+    display.display_text_on_line(1, line1String, True, (TextAlignment.LEFT), TextColours.YELLOW)
     display.display_text_on_line(2, line2String, True, (TextAlignment.LEFT, TextAlignment.RIGHT), TextColours.LIGHT_BLUE)    
     display.display_text_on_line(3, line3String, True, (TextAlignment.LEFT), line3Colour)
     display.display_text_on_line(4, line4String, True, (TextAlignment.LEFT), TextColours.GREEN)
