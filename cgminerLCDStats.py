@@ -312,14 +312,16 @@ def showDefaultScreen(firstTime, summary, mtgoxLastPrice, mtgoxDirectionCode, to
     else:
         rejp = str(int(summary['SUMMARY'][0]['Difficulty Rejected']))
     reject = "R:" + rejp
-    if 'Device Hardware%' in summary['SUMMARY'][0]:
-        hw = str(summary['SUMMARY'][0]['Device Hardware%'])
-        if (hw == '0'):
-            hwp = hw + "%"
-        else:
-            hwp = hw.split('.')[0] + "." + hw.split('.')[1][:2] + "%"
-    else:
-        hwp = str(int(summary['SUMMARY'][0]['Hardware Errors']))
+
+    # FIXME: SRS: Device Hardware is less useful than HW err, at least for me
+    #if 'Device Hardware%' in summary['SUMMARY'][0]:
+    #    hw = str(summary['SUMMARY'][0]['Device Hardware%'])
+    #    if (hw == '0'):
+    #        hwp = hw + "%"
+    #    else:
+    #        hwp = hw.split('.')[0] + "." + hw.split('.')[1][:2] + "%"
+    #else:
+    hwp = str(int(summary['SUMMARY'][0]['Hardware Errors']))
     hardware = "HW:" + hwp
     bestShare = "S:" + convertSize(int(summary['SUMMARY'][0]['Best Share']))
     workUtility = "WU:" + str(summary['SUMMARY'][0]['Work Utility']) + "/m"
