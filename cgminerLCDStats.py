@@ -372,11 +372,11 @@ def showDefaultScreen(firstTime, summary, mtgoxLastPrice, mtgoxDirectionCode, to
         display.clear_lines(TextLines.ALL, BackgroundColours.BLACK)
 
     # write all lines
-    display.display_text_on_line(1, line1String, True, (TextAlignment.LEFT), TextColours.YELLOW)
-    display.display_text_on_line(2, line2String, True, (TextAlignment.LEFT, TextAlignment.RIGHT), TextColours.LIGHT_BLUE)    
-    display.display_text_on_line(3, line3String, True, (TextAlignment.LEFT), line3Colour)
-    display.display_text_on_line(4, line4String, True, (TextAlignment.LEFT), TextColours.GREEN)
-    display.display_text_on_line(5, line5String, True, (TextAlignment.LEFT), TextColours.GREEN)
+    display.display_text_on_line(1, line1String, False, (TextAlignment.LEFT), TextColours.YELLOW)
+    display.display_text_on_line(2, line2String, False, (TextAlignment.LEFT, TextAlignment.RIGHT), TextColours.LIGHT_BLUE)    
+    display.display_text_on_line(3, line3String, False, (TextAlignment.LEFT), line3Colour)
+    display.display_text_on_line(4, line4String, False, (TextAlignment.LEFT), TextColours.GREEN)
+    display.display_text_on_line(5, line5String, False, (TextAlignment.LEFT), TextColours.GREEN)
     
     # check to see if the mtgoxDisplay just toggled, if so, display black text to remove traces of previous icon
     if toggleSinceLast == True:
@@ -386,7 +386,7 @@ def showDefaultScreen(firstTime, summary, mtgoxLastPrice, mtgoxDirectionCode, to
         display.display_icon(41, mtgoxDirectionCode) # directionCode should contain the icon number for up or down arrow
         display.display_text_anywhere(95, 200, line6String, TextColours.GREEN)
     else:
-        display.display_text_on_line(6, line6String, True, (TextAlignment.LEFT), TextColours.GREEN)
+        display.display_text_on_line(6, line6String, False, (TextAlignment.LEFT), TextColours.GREEN)
        
 # END showDefaultScreen()
 
