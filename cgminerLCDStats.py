@@ -410,7 +410,7 @@ if __name__ == "__main__":
     firstTime = True
     mtgoxLastPrice = str("$000.00")
     mtgoxPreviousPrice = str("$000.00")
-    mtgoxToggleState = True
+    mtgoxToggleState = False
     # numbers are icon numbers on LCD device: 
     mtgoxUpCode = 8     # up arrow icon number
     mtgoxDownCode = 7   # down arrow icon number
