@@ -22,7 +22,9 @@ class CgminerRPCClient:
     def command(self, command):
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.settimeout(10)
             s.connect((self.host, self.port))
+            s.settimeout(None)
             s.sendall(json.dumps({"command": command})) # send API request formatted as json
             time.sleep(0.02)
     
