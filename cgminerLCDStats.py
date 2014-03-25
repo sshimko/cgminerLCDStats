@@ -64,7 +64,7 @@ def getDeviceWellStatus(notification):
 # call cgminer "pools" API to get status
 # returns: URL of connected pool if found. Empty string if no pool URL found (impossible case?)
 #
-def getMinerPoolStatusURL(rpcClient):
+def getMinerPoolStatusURL(rpcClient, display):
 
     poolURL = None
     firstPool = None
@@ -78,6 +78,7 @@ def getMinerPoolStatusURL(rpcClient):
     if not getMinerPoolStatusURL.additionalInfo == None:
        	i = getMinerPoolStatusURL.additionalInfo
         getMinerPoolStatusURL.additionalInfo = None
+        display.clear_lines(TextLines.LINE_2, BackgroundColours.BLACK)
         return i
 
     prevLastPool = getMinerPoolStatusURL.lastPool
@@ -95,6 +96,8 @@ def getMinerPoolStatusURL(rpcClient):
                         # wrap-around and show the first active pool.
                         poolURL = i['URL']
                         getMinerPoolStatusURL.additionalInfo = "Q: " + str(i['Quota']) + "\tDA: " + str(i['Difficulty Accepted'])
+
+			
                         
                         if firstPool == None:
 	                    firstPool = poolURL 
@@ -118,6 +121,7 @@ def getMinerPoolStatusURL(rpcClient):
 
                 break
 
+    display.clear_lines(TextLines.LINE_2, BackgroundColours.BLACK)
     return poolURL
      
 # END getMinerPoolStatusURL()
@@ -189,7 +193,7 @@ def getMinerPoolUptime(stats):
 #
 # Display simplified status info screen
 #
-def showSimplifiedScreen(firstTime, summary):
+def showSimplifiedScreen(firstTime, summary, display):
 
     # extract just the data we want from the API result
     hardwareErrors = str(summary['SUMMARY'][0]['Hardware Errors'])
@@ -219,12 +223,10 @@ def showSimplifiedScreen(firstTime, summary):
 #
 # Display error screen 
 #
-def displayErrorScreen(e):
+def displayErrorScreen(e,display):
       
     # set up to write to the LCD screen
     #
-    # Init the LCD screen
-    display = LCDSysInfo()
     display.dim_when_idle(False)
     display.set_brightness(255)
     display.save_brightness(100, 255)
@@ -294,11 +296,12 @@ def getMtGoxPrice(mtgoxTimeout):
 #    toggleSinceLast - boolean did the mtGox display toggle state change since last time called?
 #    mtgoxToggleState - if True, display the MtGox price ticker
 #
-def showDefaultScreen(firstTime, summary, mtgoxLastPrice, mtgoxDirectionCode, toggleSinceLast, mtgoxToggleState):
+def showDefaultScreen(firstTime, summary, mtgoxLastPrice, mtgoxDirectionCode, toggleSinceLast, mtgoxToggleState, display):
 
     # extract just the data we want from the API result and
     #  build up display strings for each using the data
         
+    poolURL = getMinerPoolStatusURL(rpcClient, display)
     avg = float(summary['SUMMARY'][0]['MHS av'])
     avgMhs = convertSize(avg*1000000.0)
     foundBlocks = str(int(summary['SUMMARY'][0]['Found Blocks']))    
@@ -312,6 +315,7 @@ def showDefaultScreen(firstTime, summary, mtgoxLastPrice, mtgoxDirectionCode, to
     else:
         rejp = str(int(summary['SUMMARY'][0]['Difficulty Rejected']))
     reject = "R:" + rejp
+
 
     # FIXME: SRS: Device Hardware is less useful than HW err, at least for me
     #if 'Device Hardware%' in summary['SUMMARY'][0]:
@@ -342,17 +346,17 @@ def showDefaultScreen(firstTime, summary, mtgoxLastPrice, mtgoxDirectionCode, to
         shortPoolURL = shortPoolURL.replace(i, '', 1).rstrip()
       
     # build the display strings
-    line1String = shortPoolURL
-    line2String = theTime + " Up:" + upTime
-    line3String = "Avg:" + avgMhs + "h/s" + " B:" + foundBlocks
+    line1String = theTime + "\tUp:" + upTime
+    line2String = shortPoolURL
+    line3String = "H/s:|" + avgMhs + "\tB:" + foundBlocks
     if int(foundBlocks) > 0:
         line3Colour = TextColours.RED
     else:
         line3Colour = TextColours.GREEN
 
     #line3String = "Avg:" + avgMhs + "\tB:" + foundBlocks
-    line4String = difficultyAccepted + " " + bestShare
-    line5String = reject + " " + hardware
+    line4String = difficultyAccepted + "\t" + bestShare
+    line5String = reject + "\t" + hardware
     
     if mtgoxToggleState: # if we have MtGox data, get ready to display it
         line6String = "MtGox: " + mtgoxLastPrice 
@@ -362,7 +366,6 @@ def showDefaultScreen(firstTime, summary, mtgoxLastPrice, mtgoxDirectionCode, to
     # set up to write to the LCD screen
     #
     # Init the LCD screen
-    display = LCDSysInfo()
     display.dim_when_idle(False)
     display.set_brightness(255)
     display.save_brightness(100, 255)
@@ -372,11 +375,11 @@ def showDefaultScreen(firstTime, summary, mtgoxLastPrice, mtgoxDirectionCode, to
         display.clear_lines(TextLines.ALL, BackgroundColours.BLACK)
 
     # write all lines
-    display.display_text_on_line(1, line1String, False, (TextAlignment.LEFT), TextColours.YELLOW)
-    display.display_text_on_line(2, line2String, False, (TextAlignment.LEFT, TextAlignment.RIGHT), TextColours.LIGHT_BLUE)    
-    display.display_text_on_line(3, line3String, False, (TextAlignment.LEFT), line3Colour)
-    display.display_text_on_line(4, line4String, False, (TextAlignment.LEFT), TextColours.GREEN)
-    display.display_text_on_line(5, line5String, False, (TextAlignment.LEFT), TextColours.GREEN)
+    display.display_text_on_line(1, line1String, False, (TextAlignment.LEFT, TextAlignment.RIGHT), TextColours.YELLOW)
+    display.display_text_on_line(2, line2String, False, (TextAlignment.LEFT, TextAlignment.RIGHT), TextColours.GREEN)    
+    display.display_text_on_line(3, line3String, False, (TextAlignment.LEFT, TextAlignment.RIGHT), line3Colour)
+    display.display_text_on_line(4, line4String, False, (TextAlignment.LEFT, TextAlignment.RIGHT), TextColours.GREEN)
+    display.display_text_on_line(5, line5String, False, (TextAlignment.LEFT, TextAlignment.RIGHT), TextColours.RED)
     
     # check to see if the mtgoxDisplay just toggled, if so, display black text to remove traces of previous icon
     if toggleSinceLast == True:
@@ -386,7 +389,7 @@ def showDefaultScreen(firstTime, summary, mtgoxLastPrice, mtgoxDirectionCode, to
         display.display_icon(41, mtgoxDirectionCode) # directionCode should contain the icon number for up or down arrow
         display.display_text_anywhere(95, 200, line6String, TextColours.GREEN)
     else:
-        display.display_text_on_line(6, line6String, False, (TextAlignment.LEFT), TextColours.GREEN)
+        display.display_text_on_line(6, line6String, False, (TextAlignment.CENTRE), TextColours.LIGHT_BLUE)
        
 # END showDefaultScreen()
 
@@ -449,6 +452,9 @@ if __name__ == "__main__":
     
     # create instance of the CgminerRPCClient class
     rpcClient = CgminerRPCClient(host, port)
+
+    # Init the LCD screen
+    display = LCDSysInfo()
    
     while(True):
         
@@ -460,8 +466,6 @@ if __name__ == "__main__":
             avg = int(summary['SUMMARY'][0]['MHS av'])
 
             wellStatus = getDeviceWellStatus(notification)
-
-            poolURL = getMinerPoolStatusURL(rpcClient)
 
             stats = getMinerStats(rpcClient)
 
@@ -491,9 +495,9 @@ if __name__ == "__main__":
                                             
             # display selected screen if command line option present
             if simpleDisplay:
-                showSimplifiedScreen(firstTime, summary)
+                showSimplifiedScreen(firstTime, summary, display)
             else:
-                showDefaultScreen(firstTime, summary, mtgoxLastPrice, mtgoxDirectionCode, timedToggle.getToggleSinceLast(), mtgoxToggleState) 
+                showDefaultScreen(firstTime, summary, mtgoxLastPrice, mtgoxDirectionCode, timedToggle.getToggleSinceLast(), mtgoxToggleState, display) 
 
             firstTime = False
 
@@ -504,10 +508,9 @@ if __name__ == "__main__":
         ## Main application exception handler. All exceptions that aren't specifically swallowed end up here.
         #
         except Exception as e:
-            print "Main Exception Handler: "
             print str(e)
             print
-            displayErrorScreen(str(e))   # something bad happened, better display the error screen
+            displayErrorScreen(str(e), display)   # something bad happened, better display the error screen
             time.sleep(errorRefreshDelay)
 
 
