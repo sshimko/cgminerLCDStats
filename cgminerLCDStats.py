@@ -455,6 +455,16 @@ if __name__ == "__main__":
 
     # Init the LCD screen
     display = LCDSysInfo()
+
+    display.dim_when_idle(False)
+    display.set_brightness(255)
+    display.save_brightness(100, 255)
+
+    # Always clear the whole screen
+    display.clear_lines(TextLines.ALL, BackgroundColours.BLACK)
+    display.display_text_on_line(3, "Connecting to miner:", False, (TextAlignment.CENTRE), TextColours.GREEN)
+    display.display_text_on_line(4, host, False, (TextAlignment.CENTRE), TextColours.GREEN)
+    time.sleep(int(screenRefreshDelay)) # Number of seconds to wait, aprox.
    
     while(True):
         
