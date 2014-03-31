@@ -193,7 +193,7 @@ def getMinerPoolUptime(stats):
 #
 # Display simplified status info screen
 #
-def showSimplifiedScreen(firstTime, summary, display):
+def showSimplifiedScreen(summary, display):
 
     # extract just the data we want from the API result
     hardwareErrors = str(summary['SUMMARY'][0]['Hardware Errors'])
@@ -209,9 +209,6 @@ def showSimplifiedScreen(firstTime, summary, display):
     display.set_brightness(255)
     display.save_brightness(100, 255) 
     
-    if (firstTime == True):
-        display.clear_lines(TextLines.ALL, BackgroundColours.BLACK)
-
     display.display_text_on_line(1, str(poolURL), True, (TextAlignment.LEFT), TextColours.LIGHT_BLUE)
     display.display_text_on_line(2, "Uptime: \t" + upTime, True, (TextAlignment.LEFT, TextAlignment.RIGHT), TextColours.LIGHT_BLUE)
     display.display_text_on_line(3, avgMhs + "h/s", True, TextAlignment.LEFT, TextColours.LIGHT_BLUE)
@@ -289,14 +286,13 @@ def getMtGoxPrice(mtgoxTimeout):
 #  NOTE: screen design courtesy of "Kano". Thanks man!
 #
 #  Parms:
-#    firstTime - boolean is this the first run?
 #    summary - json string with cgminer "summary" call results
 #    mtgoxLastPrice - float amount from last API call
 #    mtgoxDirectionCode - int should contain the icon number for up or down arrow (7 or 8)
 #    toggleSinceLast - boolean did the mtGox display toggle state change since last time called?
 #    mtgoxToggleState - if True, display the MtGox price ticker
 #
-def showDefaultScreen(firstTime, summary, mtgoxLastPrice, mtgoxDirectionCode, toggleSinceLast, mtgoxToggleState, display):
+def showDefaultScreen(summary, mtgoxLastPrice, mtgoxDirectionCode, toggleSinceLast, mtgoxToggleState, display):
 
     # extract just the data we want from the API result and
     #  build up display strings for each using the data
@@ -370,10 +366,6 @@ def showDefaultScreen(firstTime, summary, mtgoxLastPrice, mtgoxDirectionCode, to
     display.set_brightness(255)
     display.save_brightness(100, 255)
     
-    if (firstTime == True):
-        # clear screen
-        display.clear_lines(TextLines.ALL, BackgroundColours.BLACK)
-
     # write all lines
     display.display_text_on_line(1, line1String, False, (TextAlignment.LEFT, TextAlignment.RIGHT), TextColours.YELLOW)
     display.display_text_on_line(2, line2String, False, (TextAlignment.LEFT, TextAlignment.RIGHT), TextColours.GREEN)    
@@ -441,7 +433,6 @@ if __name__ == "__main__":
     mtgoxForce = options.mtgoxForce
     
     # init other misc. variables        
-    firstTime = True
     mtgoxLastPrice = str("$000.00")
     mtgoxPreviousPrice = str("$000.00")
     mtgoxToggleState = False
@@ -505,11 +496,10 @@ if __name__ == "__main__":
                                             
             # display selected screen if command line option present
             if simpleDisplay:
-                showSimplifiedScreen(firstTime, summary, display)
+                showSimplifiedScreen(summary, display)
             else:
-                showDefaultScreen(firstTime, summary, mtgoxLastPrice, mtgoxDirectionCode, timedToggle.getToggleSinceLast(), mtgoxToggleState, display) 
+                showDefaultScreen(summary, mtgoxLastPrice, mtgoxDirectionCode, timedToggle.getToggleSinceLast(), mtgoxToggleState, display) 
 
-            firstTime = False
 
             time.sleep(int(screenRefreshDelay)) # Number of seconds to wait, aprox.
                                                 # TODO consider adjusting the delay if we had to wait for an mtgox call?
