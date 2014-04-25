@@ -412,6 +412,7 @@ if __name__ == "__main__":
     parser.add_option("-i", "--host", type="str", dest="host", default=host, help="I.P. Address of cgminer API host")
     parser.add_option("-p", "--port", type="int", dest="port", default=port, help="Port of cgminer API") 
     parser.add_option("-c", "--clock", type="str", dest="timeDisplayFormat", default='12', help="Clock Display 12 hr / 24 hr")
+    parser.add_option("-e", "--dev", type="int", dest="lcdDevNum", default='0', help="If multiple LCDs attached, this specifies the LCD number to use.")
     # MtGox related command line options
     parser.add_option("--mtgoxDisplayOff", action="store_true", dest="mtgoxDisplayOff", default=False, help="If specified, MtGox ticker will not be displayed") 
     parser.add_option("--mtgoxToggleRate", type="float", dest="mtgoxToggleRate", default=15, help="Rate to toggle display between WU: and MtGox in seconds")
@@ -425,6 +426,7 @@ if __name__ == "__main__":
     errorRefreshDelay = screenRefreshDelay
     host = options.host
     port = options.port
+    dev = options.lcdDevNum
     timeDisplayFormat = options.timeDisplayFormat
     mtgoxTimeout = options.mtgoxTimeout
     mtgoxDisplayOff = options.mtgoxDisplayOff
@@ -445,7 +447,7 @@ if __name__ == "__main__":
     rpcClient = CgminerRPCClient(host, port)
 
     # Init the LCD screen
-    display = LCDSysInfo()
+    display = LCDSysInfo(dev)
 
     display.dim_when_idle(False)
     display.set_brightness(255)
