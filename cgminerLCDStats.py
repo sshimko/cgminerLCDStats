@@ -456,7 +456,7 @@ if __name__ == "__main__":
     # Always clear the whole screen
     display.clear_lines(TextLines.ALL, BackgroundColours.BLACK)
     display.display_text_on_line(3, "Connecting to miner:", False, (TextAlignment.CENTRE), TextColours.GREEN)
-    display.display_text_on_line(4, host, False, (TextAlignment.CENTRE), TextColours.GREEN)
+    display.display_text_on_line(4, host + ":" + str(port), False, (TextAlignment.CENTRE), TextColours.GREEN)
     time.sleep(int(screenRefreshDelay)) # Number of seconds to wait, aprox.
    
     while(True):
