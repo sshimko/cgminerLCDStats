@@ -513,7 +513,12 @@ if __name__ == "__main__":
             print str(e)
             print
             displayErrorScreen(str(e), display)   # something bad happened, better display the error screen
-            time.sleep(errorRefreshDelay)
+            time.sleep(int(errorRefreshDelay))
+            display.clear_lines(TextLines.ALL, BackgroundColours.BLACK)
+            display.display_text_on_line(3, "Connecting to miner:", False, (TextAlignment.CENTRE), TextColours.GREEN)
+            display.display_text_on_line(4, host + ":" + str(port), False, (TextAlignment.CENTRE), TextColours.GREEN)
+            # create instance of the CgminerRPCClient class
+            rpcClient = CgminerRPCClient(host, port)
 
 
 
